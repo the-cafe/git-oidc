@@ -3,6 +3,7 @@ pub use errors::GitHubOIDCError;
 use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};
 use log::{debug, error, info, warn};
 use serde::{Deserialize, Serialize};
+use tracing::instrument;
 
 /// Represents a JSON Web Key (JWK) used for token validation.
 ///
@@ -100,6 +101,7 @@ pub const DEFAULT_GITHUB_OIDC_URL: &str = "https://token.actions.githubuserconte
 ///     Ok(())
 /// }
 /// ```
+#[instrument]
 pub async fn fetch_jwks(oidc_url: &str) -> Result<GithubJWKS, GitHubOIDCError> {
     info!("Fetching JWKS from {}", oidc_url);
     let client = reqwest::Client::new();
@@ -156,6 +158,7 @@ impl GithubJWKS {
     /// Returns a `Result<GitHubClaims, GitHubOIDCError>` containing the validated claims if successful,
     /// or an error if validation fails.
     ///
+    #[instrument(skip(self, config, token))]
     pub fn validate_github_token(
         &self,
         token: &str,
@@ -189,6 +192,7 @@ impl GithubJWKS {
             DecodingKey::from_rsa_components(modulus, exponent)
                 .map_err(|e| GitHubOIDCError::DecodingKeyCreationError(e.to_string()))?
         } else {
+            error!("Failed to find key ID in token header");
             DecodingKey::from_secret("your_secret_key".as_ref())
         };
 
