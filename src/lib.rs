@@ -1,6 +1,6 @@
 mod errors;
 pub use errors::GitHubOIDCError;
-use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};
+use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode};
 use log::{debug, error, info, warn};
 use serde::{Deserialize, Serialize};
 
